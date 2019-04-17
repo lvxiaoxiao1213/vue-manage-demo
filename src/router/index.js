@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import HelloWorld from '@/components/HelloWorld'
 import Manage from '@/page/manage'
 import Home from '@/page/home'
+import Login from '@/page/login'
 
 Vue.use(Router)
 
@@ -10,8 +10,7 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'HelloWorld',
-      component: HelloWorld
+      component: Login
     },{
       path: '/manage',
       component: Manage,
