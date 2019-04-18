@@ -3,12 +3,26 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
-export default new Vuex.Store({
-    state: {
-        count: 0
-    },
-    mutations: {
-        increment: state => state.count ++,
-        decrement: state => state.count --
+const state = {
+    adminInfo: {
+        avatar: 'default.jpg'
     }
+}
+
+const mutations = {
+    saveAdminInfo(state, adminInfo) {
+        state.adminInfo = adminInfo;
+    }
+}
+
+const actions = {
+    getAdminData({commit}) {
+        
+    }
+}
+
+export default new Vuex.Store({
+    state,
+    actions,
+    mutations
 })

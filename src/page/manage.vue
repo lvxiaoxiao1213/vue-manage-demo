@@ -49,6 +49,7 @@ export default {
     name: 'Manage',
     computed: {
         defaultActive: function() {
+            console.log(this.$route.path)
             return this.$route.path.replace('/', '');
         }
     }

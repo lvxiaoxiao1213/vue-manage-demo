@@ -45,8 +45,16 @@ export default {
     },
     methods: {
         submitForm(formName) {
-            console.log(this.loginForm);
-            this.$router.push('manage')
+            this.httpService.post('/admin/login', { user_name: this.loginForm.username, password: this.loginForm.password}).then(data=>{
+                if(data['status']===1) {
+                    this.$router.push('manage');
+                    this.$message({
+                        type: 'success',
+                        message: '登录成功'
+                    });
+                }
+            })
+            
         }
     },
     watch: {

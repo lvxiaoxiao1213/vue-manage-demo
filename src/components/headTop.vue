@@ -23,6 +23,7 @@ export default {
                 this.$router.push('/manage');
             }else{
                 console.log('signout')
+                this.$router.push('/');
             }
         }
     }
