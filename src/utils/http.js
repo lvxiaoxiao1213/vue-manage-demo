@@ -3,13 +3,17 @@ import qs from 'qs'
 
 axios.defaults.baseURL = 'http://elm.cangdu.org'
 axios.defaults.timeout = 5000
+axios.defaults.withCredentials = true
 
 axios.interceptors.request.use(
     config => {
         config.headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json',
+			'Content-Type': 'application/json'
         }
-        config.data = qs.stringify(config.data);
+        if(config.method==='post'){
+            config.data = JSON.stringify(config.data);
+        }
         return config;
     },
     error => {

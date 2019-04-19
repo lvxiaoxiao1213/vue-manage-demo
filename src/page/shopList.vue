@@ -12,6 +12,9 @@
                             <el-form-item label="店铺地址">
                                 <span>{{props.row.address}}</span>
                             </el-form-item>
+                            <el-form-item label="店铺介绍">
+                                <span>{{props.row.description}}</span>
+                            </el-form-item>
                             <el-form-item label="店铺ID">
                                 <span>{{props.row.id}}</span>
                             </el-form-item>
@@ -33,7 +36,7 @@
                 <el-table-column label="店铺名称" prop="name"></el-table-column>
                 <el-table-column label="店铺地址" prop="address"></el-table-column>
                 <el-table-column label="店铺介绍" prop="description"></el-table-column>
-                <el-table-column label="操作" width="200">
+                <el-table-column label="操作" width="250">
                     <template v-slot="scope">
                         <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
                         <el-button size="mini" type="success" @click="addFood(scope.$index, scope.row)">添加食品</el-button>
@@ -51,6 +54,40 @@
                     :total="count"
                 ></el-pagination>
             </div>
+            <el-dialog title="修改店铺信息" :visible.sync="dialogFormVisible">
+                <el-form :model="selectTable">
+                    <el-form-item label="店铺名称" label-width="100px">
+                        <el-input v-model="selectTable.name" auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="详细地址" label-width="100px">
+                        <el-autocomplete
+                            v-model="address.address"
+                            :fetch-suggestions="querySearchAsync"
+                            placeholder="请输入地址"
+                            style="width: 100%"
+                            @select="addressSelect"
+                        ></el-autocomplete>
+                        <span>当前城市： {{city.name}}</span>
+                    </el-form-item>
+                    <el-form-item label="店铺介绍" label-width="100px">
+                        <el-input v-model="selectTable.description"></el-input>
+                    </el-form-item>
+                    <el-form-item label="联系电话" label-width="100px">
+                        <el-input v-model="selectTable.phone"></el-input>
+                    </el-form-item>
+                    <el-form-item label="店铺分类" label-width="100px">
+                        <el-cascader
+                            :options="categoryOptions"
+                            v-model="selectedCategory"
+                            change-on-select
+                        ></el-cascader>
+                    </el-form-item>
+                </el-form>
+                <div class="dialog-footer" slot="footer">
+                    <el-button @click="dialogFormVisible = false">取消</el-button>
+                    <el-button type="primary" @click="updateShop">确定</el-button>
+                </div>
+            </el-dialog>
         </div>
     </div>
 </template>
@@ -61,11 +98,17 @@ import headTop from '@/components/headTop'
 export default {
     data() {
         return {
+            city: {},
             offset: 0,
-            limit: 20,
+            limit: 15,
             count: 0,
             tableData: [],
             currentPage: 1,
+            selectTable: {},
+            dialogFormVisible: false,
+            categoryOptions: [],
+            selectedCategory: [],
+            address: {}
         }
     },
     components: {
@@ -76,23 +119,107 @@ export default {
     },
     methods: {
         initData() {
-
+            this.httpService.get('/v1/cities',{type:'guess'}).then(data=>{
+                this.city = data;
+                this.getResturants();
+            })
+            this.httpService.get('/shopping/restaurants/count').then(data=>{
+                this.count = data.count;
+            })
         },
         handleSizeChange(val) {
-
+            console.log(`每页 ${val} 条`)
         },
         handleCurrentChange(val) {
             this.currentPage = val;
+            this.offset = (val - 1)*this.limit;
+            this.getResturants();
         },
         handleEdit(index, row) {
-
+            this.selectTable = row;
+            this.address.address = row.address
+            this.dialogFormVisible = true;
+            this.selectedCategory = row.category.split('/');
+            if(!this.categoryOptions.length) {
+                this.getCategory();
+            }
         },
         addFood(index, row) {
-
+            this.$router.push({path: 'addGoods', query: {restaurant_id: row.id}});
         },
         handleDelete(index, row) {
 
+        },
+        getResturants() {
+            const {latitude, longitude} = this.city;
+            this.httpService.get('/shopping/restaurants', {latitude, longitude, offset: this.offset, limit: this.limit}).then(data=>{
+                this.tableData = data;
+            })
+        },
+        getCategory() {
+            this.httpService.get('/shopping/v2/restaurant/category').then(data=>{
+                data.forEach(item=>{
+                    if(item.sub_categories.length) {
+                        const addnew = {
+                            value: item.name,
+                            label: item.name,
+                            children: []
+                        }
+                        item.sub_categories.forEach((subitem, index)=>{
+                            if(index == 0) {
+                                return
+                            }
+                            addnew.children.push({
+                                value: subitem.name,
+                                label: subitem.name
+                            })
+                        })
+                        this.categoryOptions.push(addnew)
+                    }
+                })
+            })
+        },
+        addressSelect(val) {
+            const {address, latitude, longitude} = val;
+            this.address = {address, latitude, longitude}
+        },
+        querySearchAsync(queryString, cb) {
+            if(queryString) {
+                this.httpService.get('/v1/pois', {
+                    type: 'search',
+                    city_id: this.city.id,
+                    keyword: queryString
+                }).then(data=>{
+                    if(data instanceof Array){
+                        data.map(item=>{
+                            item.value = item.address;
+                            return item;
+                        })
+                        cb(data);
+                    }
+                })
+            }
+        },
+        updateShop() {
+            this.dialogFormVisible = false;
+            Object.assign(this.selectTable, this.address);
+            this.selectTable.category = this.selectedCategory.join('/');
+            this.httpService.post('/shopping/updateshop', this.selectTable).then(data=>{
+                if(data.status == 1){
+                    this.$message({
+                        type: 'success',
+                        message: '更新店铺信息成功'
+                    });
+                    this.getResturants();
+                }else{
+                    this.$message({
+                        type: 'error',
+                        message: data.message
+                    });
+                }
+            });
         }
+        
     }
 }
 </script>

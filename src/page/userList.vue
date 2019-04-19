@@ -47,7 +47,7 @@ export default {
             }],
             currentRow: null,
             offset: 0,
-            limit: 20,
+            limit: 15,
             count: 4,
             currentPage: 1
         }
@@ -60,7 +60,14 @@ export default {
     },
     methods: {
         initData() {
-
+            this.httpService.get('/v1/users/count').then(data=>{
+                if(data['status']===1){
+                    this.count = data['count']
+                }else{
+                    throw new Error('获取数据失败');
+                }
+            })
+            this.getUsers();
         },
         handleSizeChange(val) {
             console.log(`每页 ${val} 条`);
@@ -71,6 +78,9 @@ export default {
             this.getUsers();
         },
         getUsers() {
+            this.httpService.get('/v1/users/list', {offset: this.offset, limit: this.limit}).then(data=>{
+                this.tableData = data;
+            })
         }
     }
 }

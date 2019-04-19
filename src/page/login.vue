@@ -22,6 +22,8 @@
 </template>
 
 <script>
+import {mapState,mapMutations} from 'vuex'
+
 export default {
     data() {
         return {
@@ -42,18 +44,46 @@ export default {
     },
     mounted() {
         this.showLogin = true;
-    },
-    methods: {
-        submitForm(formName) {
-            this.httpService.post('/admin/login', { user_name: this.loginForm.username, password: this.loginForm.password}).then(data=>{
-                if(data['status']===1) {
-                    this.$router.push('manage');
-                    this.$message({
-                        type: 'success',
-                        message: '登录成功'
-                    });
+        if(!this.adminInfo.id){
+            this.httpService.get('/admin/info', {}).then(data=>{
+                if(data['status']===1){
+                    this.saveAdminInfo(data['data']);
                 }
             })
+        }
+    },
+    computed: {
+        ...mapState(['adminInfo'])
+    },
+    methods: {
+        ...mapMutations(['saveAdminInfo']),
+        submitForm(formName) {
+            this.$refs[formName].validate((valid)=>{
+                if(valid){
+                    this.httpService.post('/admin/login', { user_name: this.loginForm.username, password: this.loginForm.password}).then(data=>{
+                        if(data['status']===1) {
+                            this.$router.push('manage');
+                            this.$message({
+                                type: 'success',
+                                message: '登录成功'
+                            });
+                        }else {
+                            this.$message({
+                                type: 'error',
+                                message: data.message
+                            })
+                        }
+                    })
+                }else {
+                    this.$notify.error({
+                        title: '错误',
+                        message: '请输入正确的用户名密码',
+                        offset: 100
+                    })
+                    return false;
+                }
+            })
+            
             
         }
     },
@@ -90,14 +120,14 @@ export default {
         top: 50%;
         left: 50%;
         margin-top: -160px;
-        margin-right: -160px;
+        margin-left: -160px;
         width: 320px;
         height: 320px;
 		padding: 25px;
 		border-radius: 5px;
 		text-align: center;
 		background-color: #fff;
-		.submit_btn{
+		.submit-btn{
 			width: 100%;
 			font-size: 16px;
 		}
