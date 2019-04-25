@@ -50,5 +50,14 @@ export default {
                 reject(err);
             })
         })
+    },
+    delete(url, data={}) {
+        return new Promise((resolve, reject) => {
+            axios.delete(url).then(response => {
+                resolve(response.data);
+            }).catch(err => {
+                reject(err);
+            })
+        })
     }
 }

@@ -148,7 +148,22 @@ export default {
             this.$router.push({path: 'addGoods', query: {restaurant_id: row.id}});
         },
         handleDelete(index, row) {
-
+            this.httpService.delete(`/shopping/restaurant/${row.id}`).then(data => {
+                if (data['status'] === 1){
+                    this.$message({
+                        type: 'success',
+                        message: '删除成功！'
+                    })
+                    this.tableData.splice(index, 1);
+                } else {
+                    throw new Error(data['message']);
+                }
+            }).catch(err=>{
+                this.$message({
+                    type: 'error',
+                    message: err.message
+                })
+            })
         },
         getResturants() {
             const {latitude, longitude} = this.city;
