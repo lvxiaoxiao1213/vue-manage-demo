@@ -5,6 +5,7 @@ import Home from '@/page/home'
 import Login from '@/page/login'
 import UserList from '@/page/userList'
 import ShopList from '@/page/shopList'
+import FoodList from '@/page/foodList'
 
 Vue.use(Router)
 
@@ -30,8 +31,14 @@ export default new Router({
         {
           path: '/shopList',
           component: ShopList,
-          meta: ['数据管理', '商户管理']
+          meta: ['数据管理', '商户列表']
+        },
+        {
+          path: '/foodList',
+          component: FoodList,
+          meta: ['数据管理', '食品列表']
         }
+        
       ]
     }
   ]
