@@ -49,7 +49,6 @@ export default {
             const date = dtime(new Date().getTime() - 864000000*i).format('YYYY-MM-DD')
             this.sevenDay.push(date);
         }
-        console.log(this.sevenDay)
         this.getSevenData();
     },
     methods: {
@@ -76,9 +75,24 @@ export default {
         },
         getSevenData() {
             const apiArr = [[], [], []];
-            // this.sevenDay.forEach(item => {
-            //     apiArr[0].push(userCount)
-            // })
+            this.sevenDay.forEach(item => {
+                apiArr[0].push(this.httpService.get(`/statis/user/${item}/count`));
+                apiArr[1].push(this.httpService.get(`/statis/order/${item}/count`));
+                apiArr[2].push(this.httpService.get(`/statis/admin/${item}/count`));
+            })
+            const promiseArr = [...apiArr[0], ...apiArr[1], ...apiArr[2]];
+            Promise.all(promiseArr).then(res => {
+                const resArr = [[], [], []];
+                res.forEach((item, index) => {
+                    if(item.status == 1){
+                        resArr[Math.floor(index/7)].push(item.count);
+                    }
+                })
+                this.sevenDate = resArr;
+            }).catch(err => {
+                console.log(err)
+            })
+
         }
     }
 }
