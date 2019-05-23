@@ -61,6 +61,27 @@
 						<el-radio class="radio" v-model="foodSpecs" label="one">单规格</el-radio>
   						<el-radio class="radio" v-model="foodSpecs" label="more">多规格</el-radio>
 					</el-form-item>
+                    <el-row v-if="foodSpecs == 'one'">
+                        <el-form-item label="包装费">
+                            <el-input-number v-model="foodForm.specs[0].packing_fee" :min="0" :max="100"></el-input-number>
+                        </el-form-item>
+                        <el-form-item label="价格">
+                            <el-input-number v-model="foodForm.specs[0].price" :min="0" :max="10000"></el-input-number>
+                        </el-form-item>
+                    </el-row>
+                    <el-row v-else>
+                        <el-button type="primary" @click="dialogFormVisible = true">添加规格</el-button>
+                        <el-table
+                        :data="foodForm.specs"
+                        :row-class-name="tableRowClassName">
+                            <el-table-column prop="specs" label="规格"></el-table-column>
+                            <el-table-column prop="packing_fee" label="包装费"></el-table-column>
+						    <el-table-column prop="price" label="价格"></el-table-column>
+						    <el-table-column label="操作">
+                                <el-button size="small" type="danger" @click="handleDelete(scope.$index)">删除</el-button>
+                            </el-table-column>
+                        </el-table>
+                    </el-row>
                 </el-form>
             </el-col>
         </el-row>
@@ -94,7 +115,8 @@ export default {
                     {required: true, message: '请输入食品名称', trigger: 'blur'}
                 ]
             },
-            showAddCategory: false
+            showAddCategory: false,
+            foodSpecs: 'one',
         }
     },
     components: {
