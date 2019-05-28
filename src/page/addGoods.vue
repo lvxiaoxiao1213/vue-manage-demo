@@ -37,7 +37,7 @@
                     </div>
                 </el-form>
                 <header class="form-header">添加食品</header>
-                <el-form :model="foodForm" :rules="foodrules" ref="foodForm" label-width="110px" class="form">
+                <el-form :model="foodForm" :rules="foodrules" ref="foodForm" label-width="110px" class="form food-form">
                     <el-form-item label="食品名称" prop="name">
                         <el-input v-model="foodForm.name"></el-input>
                     </el-form-item>
@@ -69,10 +69,11 @@
                             <el-input-number v-model="foodForm.specs[0].price" :min="0" :max="10000"></el-input-number>
                         </el-form-item>
                     </el-row>
-                    <el-row v-else>
-                        <el-button type="primary" @click="dialogFormVisible = true">添加规格</el-button>
+                    <el-row v-else style="overflow: auto; text-align: center;">
+                        <el-button type="primary" @click="dialogFormVisible = true" style="margin-bottom: 10px;">添加规格</el-button>
                         <el-table
                         :data="foodForm.specs"
+                        style="margin-bottom: 20px;"
                         :row-class-name="tableRowClassName">
                             <el-table-column prop="specs" label="规格"></el-table-column>
                             <el-table-column prop="packing_fee" label="包装费"></el-table-column>
@@ -82,7 +83,27 @@
                             </el-table-column>
                         </el-table>
                     </el-row>
+                    <el-form-item>
+                        <el-button type="primary" @click="addFood('foodForm')">确认添加食品</el-button>
+                    </el-form-item>
                 </el-form>
+                <el-dialog title="添加规格" v-model="dialogFormVisible">
+                    <el-form :rules="specsFormrules" :model="specsForm">
+                        <el-form-item label="规格" label-width="100px" prop="specs">
+                            <el-input v-model="specsForm.specs" auto-complete="off"></el-input>
+                        </el-form-item>
+                        <el-form-item label="包装费" label-width="100px">
+							<el-input-number v-model="specsForm.packing_fee" :min="0" :max="100"></el-input-number>
+						</el-form-item>
+						<el-form-item label="价格" label-width="100px">
+							<el-input-number v-model="specsForm.price" :min="0" :max="10000"></el-input-number>
+						</el-form-item>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取 消</el-button>
+                        <el-button type="primary" @click="addspecs">确 定</el-button>
+                    </div>
+                </el-dialog>
             </el-col>
         </el-row>
         
@@ -117,6 +138,16 @@ export default {
             },
             showAddCategory: false,
             foodSpecs: 'one',
+            specsForm: {
+                specs: '',
+                packing_fee: 0,
+                price: 20,
+            },
+            specsFormrules: {
+                specs: [
+                    { required: true, message: '请输入规格', trigger: 'blur' },
+                ],
+            }
         }
     },
     components: {
@@ -130,6 +161,14 @@ export default {
     methods: {
         addCategoryFun() {
             this.showAddCategory = !this.showAddCategory;
+        },
+        tableRowClassName(row, index) {
+            if(index === 1) {
+                return 'info-row'
+            } else if (index === 3) {
+                return 'positive-row'
+            }
+            return ''
         }
     }
 }
